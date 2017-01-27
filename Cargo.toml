@@ -9,5 +9,5 @@ description = "`x-www-form-urlencoded` meets Serde"
 keywords = ["serde", "serialization", "urlencoded"]
 
 [dependencies]
-serde = "0.8.7"
+serde = "0.9.1"
 url = "1.0.0"
