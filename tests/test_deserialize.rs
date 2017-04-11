@@ -1,4 +1,6 @@
 extern crate serde_urlencoded;
+#[macro_use]
+extern crate serde_derive;
 
 #[test]
 fn deserialize_bytes() {
@@ -22,4 +24,15 @@ fn deserialize_reader() {
 
     assert_eq!(serde_urlencoded::from_reader(b"first=23&last=42" as &[_]),
                Ok(result));
+}
+
+#[test]
+fn deserialize_option() {
+    #[derive(Deserialize, Default, PartialEq, Debug)]
+    struct Test {
+        param: Option<String>,
+    }
+
+    let result = Test { param: Some("Test".to_string()) };
+    assert_eq!(serde_urlencoded::from_str("param=Test"), Ok(result));
 }
