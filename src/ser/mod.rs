@@ -98,17 +98,13 @@ pub struct SeqSerializer<'output, Target: 'output + UrlEncodedTarget> {
 }
 
 /// Tuple serializer.
-///
-/// Never instantiated, tuples are not supported at top-level.
-pub struct TupleSerializer<'output, T: 'output + UrlEncodedTarget> {
-    inner: ser::Impossible<&'output mut UrlEncodedSerializer<T>, Error>,
+pub struct TupleSerializer<'output, Target: 'output + UrlEncodedTarget> {
+    urlencoder: &'output mut UrlEncodedSerializer<Target>,
 }
 
 /// Tuple struct serializer.
-///
-/// Never instantiated, tuple structs are not supported.
-pub struct TupleStructSerializer<'output, T: 'output + UrlEncodedTarget> {
-    inner: ser::Impossible<&'output mut UrlEncodedSerializer<T>, Error>,
+pub struct TupleStructSerializer<'output, Target: 'output + UrlEncodedTarget> {
+    urlencoder: &'output mut UrlEncodedSerializer<Target>,
 }
 
 /// Tuple variant serializer.
@@ -234,7 +230,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     /// Returns an error.
     fn serialize_unit_variant(self,
                               _name: &'static str,
-                              _variant_index: usize,
+                              _variant_index: u32,
                               _variant: &'static str)
                               -> Result<Self::Ok, Error> {
         Err(Error::top_level())
@@ -253,7 +249,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     fn serialize_newtype_variant<T: ?Sized + ser::Serialize>
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _value: &T)
          -> Result<Self::Ok, Error> {
@@ -280,18 +276,11 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
         Ok(SeqSerializer { urlencoder: self.urlencoder })
     }
 
-    /// Serializes a sequence, given length is ignored.
-    fn serialize_seq_fixed_size(self,
-                                _len: usize)
-                                -> Result<Self::SerializeSeq, Error> {
-        Ok(SeqSerializer { urlencoder: self.urlencoder })
-    }
-
     /// Returns an error.
     fn serialize_tuple(self,
                        _len: usize)
                        -> Result<Self::SerializeTuple, Error> {
-        Err(Error::top_level())
+        Ok(TupleSerializer { urlencoder: self.urlencoder })
     }
 
     /// Returns an error.
@@ -299,14 +288,14 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
                               _name: &'static str,
                               _len: usize)
                               -> Result<Self::SerializeTupleStruct, Error> {
-        Err(Error::top_level())
+        Ok(TupleStructSerializer { urlencoder: self.urlencoder })
     }
 
     /// Returns an error.
     fn serialize_tuple_variant
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _len: usize)
          -> Result<Self::SerializeTupleVariant, Error> {
@@ -335,7 +324,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     fn serialize_struct_variant
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _len: usize)
          -> Result<Self::SerializeStructVariant, Error> {
@@ -369,11 +358,11 @@ impl<'output, Target> ser::SerializeTuple for TupleSerializer<'output, Target>
     fn serialize_element<T: ?Sized + ser::Serialize>(&mut self,
                                                      value: &T)
                                                      -> Result<(), Error> {
-        self.inner.serialize_element(value)
+        value.serialize(pair::PairSerializer::new(self.urlencoder))
     }
 
     fn end(self) -> Result<Self::Ok, Error> {
-        self.inner.end()
+        Ok(self.urlencoder)
     }
 }
 
@@ -387,11 +376,11 @@ impl<'output, Target> ser::SerializeTupleStruct
     fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
                                                    value: &T)
                                                    -> Result<(), Error> {
-        self.inner.serialize_field(value)
+        value.serialize(pair::PairSerializer::new(self.urlencoder))
     }
 
     fn end(self) -> Result<Self::Ok, Error> {
-        self.inner.end()
+        Ok(self.urlencoder)
     }
 }
 
