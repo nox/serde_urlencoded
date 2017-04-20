@@ -23,3 +23,11 @@ fn deserialize_reader() {
     assert_eq!(serde_urlencoded::from_reader(b"first=23&last=42" as &[_]),
                Ok(result));
 }
+
+#[test]
+fn deserialize_bools() {
+    let result = vec![("first".to_owned(), true), ("last".to_owned(), false)];
+    
+    assert_eq!(serde_urlencoded::from_str("first=true&last=false"), 
+               Ok(result));
+}
