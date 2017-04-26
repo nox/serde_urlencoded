@@ -81,8 +81,8 @@ impl<'a> ::std::iter::Iterator for ParseWrapper<'a> {
 pub struct ParsableStr<'a>(Cow<'a, str>);
 pub struct ParsableStrDeserializer<'a>(Cow<'a, str>);
 
-impl<'de: 'a, 'a> IntoDeserializer<'de> for ParsableStr<'a> {
-    type Deserializer = ParsableStrDeserializer<'a>;
+impl<'de> IntoDeserializer<'de> for ParsableStr<'de> {
+    type Deserializer = ParsableStrDeserializer<'de>;
     fn into_deserializer(self) -> Self::Deserializer {
         ParsableStrDeserializer(self.0)
     }
@@ -101,7 +101,7 @@ macro_rules! forward_parsable_to_deserialize_x {
     }
 }
 
-impl<'de: 'a, 'a> de::Deserializer<'de> for ParsableStrDeserializer<'a> {
+impl<'de> de::Deserializer<'de> for ParsableStrDeserializer<'de> {
     type Error = Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
