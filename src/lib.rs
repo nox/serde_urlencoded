@@ -14,4 +14,4 @@ pub mod ser;
 #[doc(inline)]
 pub use de::{Deserializer, from_bytes, from_reader, from_str};
 #[doc(inline)]
-pub use ser::{Serializer, to_string};
+pub use ser::{Serializer, to_string , to_string_sorted_by_name};
