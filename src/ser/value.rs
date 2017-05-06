@@ -2,20 +2,15 @@ use ser::Error;
 use ser::part::{PartSerializer, Sink};
 use serde::ser::Serialize;
 use std::str;
-use url::form_urlencoded::Serializer as UrlEncodedSerializer;
-use url::form_urlencoded::Target as UrlEncodedTarget;
+use super::encoder::UrlEncoder;
 
-pub struct ValueSink<'key, 'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
-    urlencoder: &'target mut UrlEncodedSerializer<Target>,
+pub struct ValueSink<'key, 'target> {
+    urlencoder: &'target mut UrlEncoder,
     key: &'key str,
 }
 
-impl<'key, 'target, Target> ValueSink<'key, 'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
-    pub fn new(urlencoder: &'target mut UrlEncodedSerializer<Target>,
+impl<'key, 'target> ValueSink<'key, 'target>{
+    pub fn new(urlencoder: &'target mut UrlEncoder,
                key: &'key str)
                -> Self {
         ValueSink {
@@ -25,9 +20,7 @@ impl<'key, 'target, Target> ValueSink<'key, 'target, Target>
     }
 }
 
-impl<'key, 'target, Target> Sink for ValueSink<'key, 'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
+impl<'key, 'target> Sink for ValueSink<'key, 'target> {
     type Ok = ();
 
     fn serialize_str(self, value: &str) -> Result<(), Error> {

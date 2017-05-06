@@ -5,18 +5,15 @@ use ser::value::ValueSink;
 use serde::ser;
 use std::borrow::Cow;
 use std::mem;
-use url::form_urlencoded::Serializer as UrlEncodedSerializer;
-use url::form_urlencoded::Target as UrlEncodedTarget;
+use super::encoder::UrlEncoder;
 
-pub struct PairSerializer<'target, Target: 'target + UrlEncodedTarget> {
-    urlencoder: &'target mut UrlEncodedSerializer<Target>,
+pub struct PairSerializer<'target> {
+    urlencoder: &'target mut UrlEncoder,
     state: PairState,
 }
 
-impl<'target, Target> PairSerializer<'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
-    pub fn new(urlencoder: &'target mut UrlEncodedSerializer<Target>) -> Self {
+impl<'target> PairSerializer<'target> {
+    pub fn new(urlencoder: &'target mut UrlEncoder) -> Self {
         PairSerializer {
             urlencoder: urlencoder,
             state: PairState::WaitingForKey,
@@ -24,9 +21,7 @@ impl<'target, Target> PairSerializer<'target, Target>
     }
 }
 
-impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
+impl<'target> ser::Serializer for PairSerializer<'target> {
     type Ok = ();
     type Error = Error;
     type SerializeSeq = ser::Impossible<(), Error>;
@@ -198,9 +193,7 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
     }
 }
 
-impl<'target, Target> ser::SerializeTuple for PairSerializer<'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
+impl<'target> ser::SerializeTuple for PairSerializer<'target> {
     type Ok = ();
     type Error = Error;
 
