@@ -19,4 +19,4 @@ test = false
 dtoa = "0.4.0"
 itoa = "0.3.0"
 serde = "1.0.0"
-url = "1.0.0"
+url = "1.5.0"
