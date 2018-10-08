@@ -48,3 +48,47 @@ fn serialize_unit_enum() {
     assert_eq!(serde_urlencoded::to_string(params),
                Ok("one=A&two=B&three=C".to_owned()));
 }
+
+#[test]
+fn serialize_sequence() {
+    let params = &[("first", Some(23)), ("first", None), ("first", Some(34)), ("last", Some(42))];
+
+    assert_eq!(serde_urlencoded::to_string(params),
+               Ok("first=23&first=34&last=42".to_owned()));
+}
+
+#[derive(Serialize)]
+struct User {
+    first_name: String,
+    last_name: String,
+}
+
+#[test]
+fn serialize_struct() {
+    let params = User {
+        first_name: "John".to_owned(),
+        last_name: "Doe".to_owned(),
+    };
+
+    assert_eq!(serde_urlencoded::to_string(params),
+               Ok("first_name=John&last_name=Doe".to_owned()));
+}
+
+#[derive(Serialize)]
+struct Customer {
+    first_name: String,
+    last_name: String,
+    emails: Vec<String>,
+}
+
+#[test]
+fn serialize_struct_with_vec() {
+    let params = Customer {
+        first_name: "John".to_owned(),
+        last_name: "Doe".to_owned(),
+        emails: vec!["john@example.com".to_owned(), "doe@example.com".to_owned()],
+    };
+
+    assert_eq!(serde_urlencoded::to_string(params),
+               Ok("first_name=John&last_name=Doe&emails=john%40example.com&emails=doe%40example.com".to_owned()));
+}

@@ -1,7 +1,7 @@
 use ser::Error;
 use ser::key::KeySink;
 use ser::part::PartSerializer;
-use ser::value::ValueSink;
+use ser::value::ValueSerializer;
 use serde::ser;
 use std::borrow::Cow;
 use std::mem;
@@ -212,8 +212,7 @@ impl<'target, Target> ser::SerializeTuple for PairSerializer<'target, Target>
             },
             PairState::WaitingForValue { key } => {
                 let result = {
-                    let value_sink = ValueSink::new(self.urlencoder, &key);
-                    let value_serializer = PartSerializer::new(value_sink);
+                    let value_serializer = ValueSerializer::new(self.urlencoder, &key);
                     value.serialize(value_serializer)
                 };
                 if result.is_ok() {
