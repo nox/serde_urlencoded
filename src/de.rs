@@ -77,14 +77,14 @@ pub fn from_reader<T, R>(mut reader: R) -> Result<T, Error>
 /// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size`
 ///   defers to `deserialize`.
 pub struct Deserializer<'de> {
-    inner: MapDeserializer<'de, PartIterator<'de>, Error>,
+    parser: UrlEncodedParse<'de>,
 }
 
 impl<'de> Deserializer<'de> {
     /// Returns a new `Deserializer`.
     pub fn new(parser: UrlEncodedParse<'de>) -> Self {
         Deserializer {
-            inner: MapDeserializer::new(PartIterator(parser)),
+            parser
         }
     }
 }
@@ -101,19 +101,30 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
     fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
         where V: de::Visitor<'de>,
     {
-        visitor.visit_map(self.inner)
+        let mut pairs = Vec::new();
+        for (k, v) in self.parser {
+            if let Some(index) = pairs.iter().position(|&(Part(ref pk), _): &(Part<'de>, Value<'de>)| *pk == k) {
+                pairs[index].1.append(v);
+            } else {
+                pairs.push((Part(k), Value::Single(v)));
+            }
+        }
+        let inner = MapDeserializer::new(pairs.into_iter());
+        visitor.visit_map(inner)
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
         where V: de::Visitor<'de>,
     {
-        visitor.visit_seq(self.inner)
+        let inner = MapDeserializer::new(PartIterator(self.parser));
+        visitor.visit_seq(inner)
     }
 
     fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
         where V:  de::Visitor<'de>,
     {
-        self.inner.end()?;
+        let inner = MapDeserializer::new(PartIterator(self.parser));
+        inner.end()?;
         visitor.visit_unit()
     }
 
@@ -158,6 +169,32 @@ impl<'de> Iterator for PartIterator<'de> {
 
 struct Part<'de>(Cow<'de, str>);
 
+enum Value<'de> {
+    Single(Cow<'de, str>),
+    Multiple(Vec<Cow<'de, str>>),
+}
+
+impl<'de> Value<'de> {
+    fn append(&mut self, value: Cow<'de, str>) {
+        if let Value::Single(_) = self {
+            let mut v = Value::Multiple(vec![]);
+            ::std::mem::swap(self, &mut v);
+            match self {
+                Value::Multiple(ref mut values) =>
+                    match v {
+                        Value::Single(prev) => values.push(prev),
+                        _ => {},
+                    }
+                _ => {},
+            }
+        }
+        match self {
+            Value::Multiple(ref mut values) => values.push(value),
+            _ => {},
+        }
+    }
+}
+
 impl<'de> IntoDeserializer<'de> for Part<'de>
 {
     type Deserializer = Self;
@@ -167,7 +204,15 @@ impl<'de> IntoDeserializer<'de> for Part<'de>
     }
 }
 
-macro_rules! forward_parsed_value {
+impl<'de> IntoDeserializer<'de> for Value<'de> {
+    type Deserializer = Self;
+
+    fn into_deserializer(self) -> Self::Deserializer {
+        self
+    }
+}
+
+macro_rules! forward_parsed_key {
     ($($ty:ident => $method:ident,)*) => {
         $(
             fn $method<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -176,6 +221,27 @@ macro_rules! forward_parsed_value {
                 match self.0.parse::<$ty>() {
                     Ok(val) => val.into_deserializer().$method(visitor),
                     Err(e) => Err(de::Error::custom(e))
+                }
+            }
+        )*
+    }
+}
+
+macro_rules! forward_parsed_value {
+    ($($ty:ident => $method:ident,)*) => {
+        $(
+            fn $method<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+                where V: de::Visitor<'de>
+            {
+                match self {
+                    Value::Single(s) =>
+                        match s.parse::<$ty>() {
+                            Ok(val) => val.into_deserializer().$method(visitor),
+                            Err(e) => Err(de::Error::custom(e))
+                        }
+                    Value::Multiple(_) => {
+                        Err(de::Error::duplicate_field(""))
+                    }
                 }
             }
         )*
@@ -206,6 +272,71 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
         where V: de::Visitor<'de>,
     {
         visitor.visit_enum(ValueEnumAccess(self.0))
+    }
+
+    forward_to_deserialize_any! {
+        char
+        str
+        string
+        unit
+        bytes
+        byte_buf
+        unit_struct
+        newtype_struct
+        tuple_struct
+        struct
+        identifier
+        tuple
+        ignored_any
+        seq
+        map
+    }
+
+    forward_parsed_key! {
+        bool => deserialize_bool,
+        u8 => deserialize_u8,
+        u16 => deserialize_u16,
+        u32 => deserialize_u32,
+        u64 => deserialize_u64,
+        i8 => deserialize_i8,
+        i16 => deserialize_i16,
+        i32 => deserialize_i32,
+        i64 => deserialize_i64,
+        f32 => deserialize_f32,
+        f64 => deserialize_f64,
+    }
+}
+
+impl<'de> de::Deserializer<'de> for Value<'de> {
+    type Error = Error;
+
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        where V: de::Visitor<'de>,
+    {
+        match self {
+            Value::Single(v) => v.into_deserializer().deserialize_any(visitor),
+            Value::Multiple(s) => s.into_deserializer().deserialize_any(visitor),
+        }
+    }
+
+    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        where V: de::Visitor<'de>,
+    {
+        visitor.visit_some(self)
+    }
+
+    fn deserialize_enum<V>(
+        self,
+        _name: &'static str,
+        _variants: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+        where V: de::Visitor<'de>,
+    {
+        match self {
+            Value::Single(v) => visitor.visit_enum(ValueEnumAccess(v)),
+            Value::Multiple(_) => Err(de::Error::duplicate_field("")),
+        }
     }
 
     forward_to_deserialize_any! {

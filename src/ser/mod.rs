@@ -420,8 +420,7 @@ impl<'output, Target> ser::SerializeMap for MapSerializer<'output, Target>
          value: &V)
          -> Result<(), Error> {
         let key_sink = key::KeySink::new(|key| {
-            let value_sink = value::ValueSink::new(self.urlencoder, &key);
-            value.serialize(part::PartSerializer::new(value_sink))?;
+            value.serialize(value::ValueSerializer::new(self.urlencoder, &key))?;
             self.key = None;
             Ok(())
         });
@@ -443,8 +442,7 @@ impl<'output, Target> ser::SerializeMap for MapSerializer<'output, Target>
                                                    -> Result<(), Error> {
         {
             let key = self.key.as_ref().ok_or_else(|| Error::no_key())?;
-            let value_sink = value::ValueSink::new(self.urlencoder, &key);
-            value.serialize(part::PartSerializer::new(value_sink))?;
+            value.serialize(value::ValueSerializer::new(self.urlencoder, &key))?;
         }
         self.key = None;
         Ok(())
@@ -465,8 +463,7 @@ impl<'output, Target> ser::SerializeStruct for StructSerializer<'output, Target>
                                                    key: &'static str,
                                                    value: &T)
                                                    -> Result<(), Error> {
-        let value_sink = value::ValueSink::new(self.urlencoder, key);
-        value.serialize(part::PartSerializer::new(value_sink))
+        value.serialize(value::ValueSerializer::new(self.urlencoder, key))
     }
 
     fn end(self) -> Result<Self::Ok, Error> {
