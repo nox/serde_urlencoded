@@ -27,7 +27,10 @@ use url::form_urlencoded::Target as UrlEncodedTarget;
 ///     serde_urlencoded::to_string(meal),
 ///     Ok("bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter".to_owned()));
 /// ```
-pub fn to_string<T: ser::Serialize>(input: T) -> Result<String, Error> {
+pub fn to_string<T>(input: &T) -> Result<String, Error>
+where
+    T: ser::Serialize + ?Sized,
+{
     let mut urlencoder = UrlEncodedSerializer::new("".to_owned());
     input.serialize(Serializer::new(&mut urlencoder))?;
     Ok(urlencoder.finish())

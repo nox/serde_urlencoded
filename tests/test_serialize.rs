@@ -73,3 +73,32 @@ fn serialize_unit_enum() {
         Ok("one=A&two=B&three=C".to_owned())
     );
 }
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+enum OtherComplex<'a> {
+    SomeString(&'a str),
+}
+
+#[derive(Serialize)]
+struct Complex<'a> {
+    a: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    b: Option<&'a str>,
+    #[serde(flatten)]
+    c: OtherComplex<'a>,
+}
+
+#[test]
+fn serialize_complex() {
+    let complex = Complex {
+        a: 23,
+        b: None,
+        c: OtherComplex::SomeString("a string"),
+    };
+
+    assert_eq!(
+        serde_urlencoded::to_string(&complex),
+        Ok("a=23&someString=a+string".to_owned())
+    );
+}
