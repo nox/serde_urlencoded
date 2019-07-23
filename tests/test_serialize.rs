@@ -71,3 +71,19 @@ fn serialize_unit_enum() {
         Ok("one=A&two=B&three=C".to_owned())
     );
 }
+
+#[derive(Serialize)]
+struct Params {
+  one: &'static str,
+  two: i64,
+  three: Option<bool>,
+}
+
+#[test]
+fn serialize_struct() {
+    let params = Params { one: "A", two: 2, three: Some(true) };
+    assert_eq!(
+        serde_urlencoded::to_string(params),
+        Ok("one=A&two=2&three=true".to_owned())
+    );
+}
