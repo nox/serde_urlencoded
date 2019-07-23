@@ -1,7 +1,7 @@
-use ser::key::KeySink;
-use ser::part::PartSerializer;
-use ser::value::ValueSink;
-use ser::Error;
+use super::key::KeySink;
+use super::part::PartSerializer;
+use super::value::ValueSink;
+use super::Error;
 use serde::ser;
 use std::borrow::Cow;
 use std::mem;
@@ -19,7 +19,7 @@ where
 {
     pub fn new(urlencoder: &'target mut UrlEncodedSerializer<Target>) -> Self {
         PairSerializer {
-            urlencoder: urlencoder,
+            urlencoder,
             state: PairState::WaitingForKey,
         }
     }
@@ -229,7 +229,7 @@ where
                 if result.is_ok() {
                     self.state = PairState::Done;
                 } else {
-                    self.state = PairState::WaitingForValue { key: key };
+                    self.state = PairState::WaitingForValue { key };
                 }
                 result
             },

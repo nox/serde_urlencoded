@@ -1,5 +1,5 @@
-use ser::part::Sink;
-use ser::Error;
+use super::part::Sink;
+use super::Error;
 use serde::Serialize;
 use std::borrow::Cow;
 use std::ops::Deref;
@@ -38,7 +38,7 @@ where
     End: for<'key> FnOnce(Key<'key>) -> Result<Ok, Error>,
 {
     pub fn new(end: End) -> Self {
-        KeySink { end: end }
+        KeySink { end }
     }
 }
 

@@ -1,5 +1,5 @@
-use ser::part::{PartSerializer, Sink};
-use ser::Error;
+use super::part::{PartSerializer, Sink};
+use super::Error;
 use serde::ser::Serialize;
 use std::str;
 use url::form_urlencoded::Serializer as UrlEncodedSerializer;
@@ -22,8 +22,8 @@ where
         key: &'key str,
     ) -> Self {
         ValueSink {
-            urlencoder: urlencoder,
-            key: key,
+            urlencoder,
+            key,
         }
     }
 }

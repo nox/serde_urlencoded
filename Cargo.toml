@@ -8,6 +8,7 @@ documentation = "https://docs.rs/serde_urlencoded"
 description = "`x-www-form-urlencoded` meets Serde"
 categories = ["encoding", "web-programming"]
 keywords = ["serde", "serialization", "urlencoded"]
+edition = "2018"
 
 [badges]
 travis-ci = {repository = "nox/serde_urlencoded"}
@@ -16,10 +17,10 @@ travis-ci = {repository = "nox/serde_urlencoded"}
 test = false
 
 [dependencies]
-dtoa = "0.4.0"
-itoa = "0.4.0"
-serde = "1.0.0"
-url = "1.0.0"
+dtoa = "0.4"
+itoa = "0.4"
+serde = "1"
+url = "1"
 
 [dev-dependencies]
-serde_derive = "1.0"
+serde = { version = "1", features = ["derive"] }

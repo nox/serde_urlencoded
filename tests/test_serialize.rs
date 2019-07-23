@@ -1,6 +1,4 @@
-extern crate serde_urlencoded;
-#[macro_use]
-extern crate serde_derive;
+use serde::Serialize;
 
 #[derive(Serialize)]
 struct NewType<T>(T);

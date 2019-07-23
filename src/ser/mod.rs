@@ -50,7 +50,7 @@ impl<'output, Target: 'output + UrlEncodedTarget> Serializer<'output, Target> {
     /// Returns a new `Serializer`.
     pub fn new(urlencoder: &'output mut UrlEncodedSerializer<Target>) -> Self {
         Serializer {
-            urlencoder: urlencoder,
+            urlencoder,
         }
     }
 }
@@ -80,7 +80,7 @@ impl error::Error for Error {
     }
 
     /// The lower-level cause of this error, in the case of a `Utf8` error.
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             Error::Custom(_) => None,
             Error::Utf8(ref err) => Some(err),
@@ -470,7 +470,7 @@ where
         value: &T,
     ) -> Result<(), Error> {
         {
-            let key = self.key.as_ref().ok_or_else(|| Error::no_key())?;
+            let key = self.key.as_ref().ok_or_else(Error::no_key)?;
             let value_sink = value::ValueSink::new(self.urlencoder, &key);
             value.serialize(part::PartSerializer::new(value_sink))?;
         }
