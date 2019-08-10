@@ -80,7 +80,7 @@ impl error::Error for Error {
     }
 
     /// The lower-level cause of this error, in the case of a `Utf8` error.
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             Error::Custom(_) => None,
             Error::Utf8(ref err) => Some(err),
