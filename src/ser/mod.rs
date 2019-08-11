@@ -13,7 +13,7 @@ use std::str;
 use url::form_urlencoded::Serializer as UrlEncodedSerializer;
 use url::form_urlencoded::Target as UrlEncodedTarget;
 
-/// Serializes a value into a `application/x-wwww-url-encoded` `String` buffer.
+/// Serializes a value into a `application/x-wwww-url-encoded` `String` buffer in utf8 encoding.
 ///
 /// ```
 /// let meal = &[
@@ -29,6 +29,31 @@ use url::form_urlencoded::Target as UrlEncodedTarget;
 /// ```
 pub fn to_string<T: ser::Serialize>(input: T) -> Result<String, Error> {
     let mut urlencoder = UrlEncodedSerializer::new("".to_owned());
+    input.serialize(Serializer::new(&mut urlencoder))?;
+    Ok(urlencoder.finish())
+}
+
+/// Serializes a value into a `application/x-wwww-url-encoded` `String` buffer in custom encoding..
+///
+/// ```
+/// use std::borrow::Cow;
+///
+/// let meal = &[
+///     ("bread", "baguette"),
+///     ("fat", "butter"),
+/// ];
+///
+/// fn caesar_cipher_encode(raw: &str) -> Cow<[u8]> {
+///     Cow::Owned(raw.as_bytes().iter().map(|ascii| (ascii - 94) % 26 + 97).collect())
+/// }
+///
+/// assert_eq!(
+///     serde_urlencoded::encode_into(meal, caesar_cipher_encode),
+///     Ok("euhdg=edjxhwwh&idw=exwwhu".to_owned()));
+/// ```
+pub fn encode_into(input: impl ser::Serialize, encoding: impl Fn(&str) -> Cow<[u8]>) -> Result<String, Error> {
+    let mut urlencoder = UrlEncodedSerializer::new("".to_owned());
+    urlencoder.encoding_override(Some(&encoding));
     input.serialize(Serializer::new(&mut urlencoder))?;
     Ok(urlencoder.finish())
 }
