@@ -110,7 +110,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
     }
 
     fn serialize_unit_struct(self, name: &'static str) -> Result<S::Ok, Error> {
-        self.sink.serialize_static_str(name.into())
+        self.sink.serialize_static_str(name)
     }
 
     fn serialize_unit_variant(
@@ -119,7 +119,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         _variant_index: u32,
         variant: &'static str,
     ) -> Result<S::Ok, Error> {
-        self.sink.serialize_static_str(variant.into())
+        self.sink.serialize_static_str(variant)
     }
 
     fn serialize_newtype_struct<T: ?Sized + ser::Serialize>(
