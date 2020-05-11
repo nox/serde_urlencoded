@@ -22,8 +22,8 @@ where
         key: &'key str,
     ) -> Self {
         ValueSink {
-            urlencoder: urlencoder,
-            key: key,
+            urlencoder,
+            key,
         }
     }
 }

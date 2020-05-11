@@ -50,7 +50,7 @@ impl<'input, 'output, Target: 'output + UrlEncodedTarget> Serializer<'input, 'ou
     /// Returns a new `Serializer`.
     pub fn new(urlencoder: &'output mut UrlEncodedSerializer<'input, Target>) -> Self {
         Serializer {
-            urlencoder: urlencoder,
+            urlencoder,
         }
     }
 }

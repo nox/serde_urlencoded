@@ -10,7 +10,7 @@ pub struct PartSerializer<S> {
 
 impl<S: Sink> PartSerializer<S> {
     pub fn new(sink: S) -> Self {
-        PartSerializer { sink: sink }
+        PartSerializer { sink }
     }
 }
 

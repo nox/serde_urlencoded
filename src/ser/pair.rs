@@ -19,7 +19,7 @@ where
 {
     pub fn new(urlencoder: &'target mut UrlEncodedSerializer<'input, Target>) -> Self {
         PairSerializer {
-            urlencoder: urlencoder,
+            urlencoder,
             state: PairState::WaitingForKey,
         }
     }
@@ -229,7 +229,7 @@ where
                 if result.is_ok() {
                     self.state = PairState::Done;
                 } else {
-                    self.state = PairState::WaitingForValue { key: key };
+                    self.state = PairState::WaitingForValue { key };
                 }
                 result
             },
