@@ -5,13 +5,13 @@ mod pair;
 mod part;
 mod value;
 
+use form_urlencoded::Serializer as UrlEncodedSerializer;
+use form_urlencoded::Target as UrlEncodedTarget;
 use serde::ser;
 use std::borrow::Cow;
 use std::error;
 use std::fmt;
 use std::str;
-use url::form_urlencoded::Serializer as UrlEncodedSerializer;
-use url::form_urlencoded::Target as UrlEncodedTarget;
 
 /// Serializes a value into a `application/x-www-form-urlencoded` `String` buffer.
 ///
