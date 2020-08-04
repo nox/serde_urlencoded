@@ -46,9 +46,13 @@ pub struct Serializer<'input, 'output, Target: UrlEncodedTarget> {
     urlencoder: &'output mut UrlEncodedSerializer<'input, Target>,
 }
 
-impl<'input, 'output, Target: 'output + UrlEncodedTarget> Serializer<'input, 'output, Target> {
+impl<'input, 'output, Target: 'output + UrlEncodedTarget>
+    Serializer<'input, 'output, Target>
+{
     /// Returns a new `Serializer`.
-    pub fn new(urlencoder: &'output mut UrlEncodedSerializer<'input, Target>) -> Self {
+    pub fn new(
+        urlencoder: &'output mut UrlEncodedSerializer<'input, Target>,
+    ) -> Self {
         Serializer { urlencoder }
     }
 }
@@ -144,7 +148,8 @@ pub struct StructVariantSerializer<'input, 'output, T: UrlEncodedTarget> {
     inner: ser::Impossible<&'output mut UrlEncodedSerializer<'input, T>, Error>,
 }
 
-impl<'input, 'output, Target> ser::Serializer for Serializer<'input, 'output, Target>
+impl<'input, 'output, Target> ser::Serializer
+    for Serializer<'input, 'output, Target>
 where
     Target: 'output + UrlEncodedTarget,
 {
@@ -153,10 +158,12 @@ where
     type SerializeSeq = SeqSerializer<'input, 'output, Target>;
     type SerializeTuple = TupleSerializer<'input, 'output, Target>;
     type SerializeTupleStruct = TupleStructSerializer<'input, 'output, Target>;
-    type SerializeTupleVariant = TupleVariantSerializer<'input, 'output, Target>;
+    type SerializeTupleVariant =
+        TupleVariantSerializer<'input, 'output, Target>;
     type SerializeMap = MapSerializer<'input, 'output, Target>;
     type SerializeStruct = StructSerializer<'input, 'output, Target>;
-    type SerializeStructVariant = StructVariantSerializer<'input, 'output, Target>;
+    type SerializeStructVariant =
+        StructVariantSerializer<'input, 'output, Target>;
 
     /// Returns an error.
     fn serialize_bool(self, _v: bool) -> Result<Self::Ok, Error> {
@@ -358,7 +365,8 @@ where
     }
 }
 
-impl<'input, 'output, Target> ser::SerializeSeq for SeqSerializer<'input, 'output, Target>
+impl<'input, 'output, Target> ser::SerializeSeq
+    for SeqSerializer<'input, 'output, Target>
 where
     Target: 'output + UrlEncodedTarget,
 {
@@ -377,7 +385,8 @@ where
     }
 }
 
-impl<'input, 'output, Target> ser::SerializeTuple for TupleSerializer<'input, 'output, Target>
+impl<'input, 'output, Target> ser::SerializeTuple
+    for TupleSerializer<'input, 'output, Target>
 where
     Target: 'output + UrlEncodedTarget,
 {
@@ -436,7 +445,8 @@ where
     }
 }
 
-impl<'input, 'output, Target> ser::SerializeMap for MapSerializer<'input, 'output, Target>
+impl<'input, 'output, Target> ser::SerializeMap
+    for MapSerializer<'input, 'output, Target>
 where
     Target: 'output + UrlEncodedTarget,
 {
@@ -489,7 +499,8 @@ where
     }
 }
 
-impl<'input, 'output, Target> ser::SerializeStruct for StructSerializer<'input, 'output, Target>
+impl<'input, 'output, Target> ser::SerializeStruct
+    for StructSerializer<'input, 'output, Target>
 where
     Target: 'output + UrlEncodedTarget,
 {
