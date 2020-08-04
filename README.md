@@ -1,6 +1,10 @@
 `x-www-form-urlencoded` meets Serde
 ===================================
 
+[![Crates.io](https://img.shields.io/crates/v/serde_urlencoded)](https://crates.io/crates/serde_urlencoded)
+[![Docs](https://docs.rs/serde_urlencoded/badge.svg)](https://docs.rs/serde_urlencoded) 
+[![Build Status](https://travis-ci.org/nox/serde_urlencoded.svg?branch=master)](https://travis-ci.org/nox/serde_urlencoded)
+
 This crate is a Rust library for serialising to and deserialising from
 the [`application/x-www-form-urlencoded`][urlencoded] format. It is built
 upon [Serde], a high performance generic serialization framework and [rust-url],
