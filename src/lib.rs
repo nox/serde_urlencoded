@@ -3,10 +3,10 @@
 #![warn(unused_extern_crates)]
 
 extern crate dtoa;
+extern crate form_urlencoded;
 extern crate itoa;
 #[macro_use]
 extern crate serde;
-extern crate url;
 
 pub mod de;
 pub mod ser;
