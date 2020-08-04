@@ -2,9 +2,9 @@
 
 #![warn(unused_extern_crates)]
 
-extern crate dtoa;
 extern crate form_urlencoded;
 extern crate itoa;
+extern crate ryu;
 #[macro_use]
 extern crate serde;
 
