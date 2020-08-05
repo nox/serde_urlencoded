@@ -223,7 +223,7 @@ where
                     key: value.serialize(key_serializer)?,
                 };
                 Ok(())
-            },
+            }
             PairState::WaitingForValue { key } => {
                 let result = {
                     let value_sink = ValueSink::new(self.urlencoder, &key);
@@ -236,7 +236,7 @@ where
                     self.state = PairState::WaitingForValue { key };
                 }
                 result
-            },
+            }
             PairState::Done => Err(Error::done()),
         }
     }
