@@ -1,5 +1,5 @@
-use dtoa;
 use itoa;
+use ryu;
 use ser::Error;
 use serde::ser;
 use std::str;
@@ -222,11 +222,10 @@ impl<S: Sink> PartSerializer<S> {
 
     fn serialize_floating<F>(self, value: F) -> Result<S::Ok, Error>
     where
-        F: dtoa::Floating,
+        F: ryu::Float,
     {
-        let mut buf = [b'\0'; 24];
-        let len = dtoa::write(&mut buf[..], value).unwrap();
-        let part = unsafe { str::from_utf8_unchecked(&buf[0..len]) };
+        let mut buf = ryu::Buffer::new();
+        let part = buf.format(value);
         ser::Serializer::serialize_str(self, part)
     }
 }
