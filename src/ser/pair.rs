@@ -1,9 +1,9 @@
-use form_urlencoded::Serializer as UrlEncodedSerializer;
-use form_urlencoded::Target as UrlEncodedTarget;
 use crate::ser::key::KeySink;
 use crate::ser::part::PartSerializer;
 use crate::ser::value::ValueSink;
 use crate::ser::Error;
+use form_urlencoded::Serializer as UrlEncodedSerializer;
+use form_urlencoded::Target as UrlEncodedTarget;
 use serde::ser;
 use std::borrow::Cow;
 use std::mem;
@@ -17,7 +17,9 @@ impl<'input, 'target, Target> PairSerializer<'input, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
-    pub fn new(urlencoder: &'target mut UrlEncodedSerializer<'input, Target>) -> Self {
+    pub fn new(
+        urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,
+    ) -> Self {
         PairSerializer {
             urlencoder,
             state: PairState::WaitingForKey,
@@ -25,7 +27,8 @@ where
     }
 }
 
-impl<'input, 'target, Target> ser::Serializer for PairSerializer<'input, 'target, Target>
+impl<'input, 'target, Target> ser::Serializer
+    for PairSerializer<'input, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
@@ -200,7 +203,8 @@ where
     }
 }
 
-impl<'input, 'target, Target> ser::SerializeTuple for PairSerializer<'input, 'target, Target>
+impl<'input, 'target, Target> ser::SerializeTuple
+    for PairSerializer<'input, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
@@ -219,7 +223,7 @@ where
                     key: value.serialize(key_serializer)?,
                 };
                 Ok(())
-            },
+            }
             PairState::WaitingForValue { key } => {
                 let result = {
                     let value_sink = ValueSink::new(self.urlencoder, &key);
@@ -232,7 +236,7 @@ where
                     self.state = PairState::WaitingForValue { key };
                 }
                 result
-            },
+            }
             PairState::Done => Err(Error::done()),
         }
     }

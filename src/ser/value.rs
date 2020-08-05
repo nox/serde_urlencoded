@@ -1,7 +1,7 @@
-use form_urlencoded::Serializer as UrlEncodedSerializer;
-use form_urlencoded::Target as UrlEncodedTarget;
 use crate::ser::part::{PartSerializer, Sink};
 use crate::ser::Error;
+use form_urlencoded::Serializer as UrlEncodedSerializer;
+use form_urlencoded::Target as UrlEncodedTarget;
 use serde::ser::Serialize;
 use std::str;
 
@@ -25,7 +25,8 @@ where
     }
 }
 
-impl<'input, 'key, 'target, Target> Sink for ValueSink<'input, 'key, 'target, Target>
+impl<'input, 'key, 'target, Target> Sink
+    for ValueSink<'input, 'key, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
