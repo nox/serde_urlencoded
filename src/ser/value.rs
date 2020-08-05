@@ -1,13 +1,13 @@
 use form_urlencoded::Serializer as UrlEncodedSerializer;
 use form_urlencoded::Target as UrlEncodedTarget;
-use ser::part::{PartSerializer, Sink};
-use ser::Error;
+use crate::ser::part::{PartSerializer, Sink};
+use crate::ser::Error;
 use serde::ser::Serialize;
 use std::str;
 
 pub struct ValueSink<'input, 'key, 'target, Target>
 where
-    Target: 'target + UrlEncodedTarget,
+    Target: UrlEncodedTarget,
 {
     urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,
     key: &'key str,

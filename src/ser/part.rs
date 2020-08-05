@@ -1,6 +1,6 @@
+use crate::ser::Error;
 use itoa;
 use ryu;
-use ser::Error;
 use serde::ser;
 use std::str;
 

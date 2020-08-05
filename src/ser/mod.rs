@@ -42,7 +42,7 @@ pub fn to_string<T: ser::Serialize>(input: T) -> Result<String, Error> {
 ///   unit structs and unit variants.
 ///
 /// * Newtype structs defer to their inner values.
-pub struct Serializer<'input, 'output, Target: 'output + UrlEncodedTarget> {
+pub struct Serializer<'input, 'output, Target: UrlEncodedTarget> {
     urlencoder: &'output mut UrlEncodedSerializer<'input, Target>,
 }
 
@@ -63,7 +63,7 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Error::Custom(ref msg) => msg.fmt(f),
             Error::Utf8(ref err) => write!(f, "invalid UTF-8: {}", err),
@@ -80,7 +80,7 @@ impl error::Error for Error {
     }
 
     /// The lower-level cause of this error, in the case of a `Utf8` error.
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             Error::Custom(_) => None,
             Error::Utf8(ref err) => Some(err),
@@ -103,46 +103,46 @@ impl ser::Error for Error {
 }
 
 /// Sequence serializer.
-pub struct SeqSerializer<'input, 'output, Target: 'output + UrlEncodedTarget> {
+pub struct SeqSerializer<'input, 'output, Target: UrlEncodedTarget> {
     urlencoder: &'output mut UrlEncodedSerializer<'input, Target>,
 }
 
 /// Tuple serializer.
 ///
 /// Mostly used for arrays.
-pub struct TupleSerializer<'input, 'output, Target: 'output + UrlEncodedTarget> {
+pub struct TupleSerializer<'input, 'output, Target: UrlEncodedTarget> {
     urlencoder: &'output mut UrlEncodedSerializer<'input, Target>,
 }
 
 /// Tuple struct serializer.
 ///
 /// Never instantiated, tuple structs are not supported.
-pub struct TupleStructSerializer<'input, 'output, T: 'output + UrlEncodedTarget> {
+pub struct TupleStructSerializer<'input, 'output, T: UrlEncodedTarget> {
     inner: ser::Impossible<&'output mut UrlEncodedSerializer<'input, T>, Error>,
 }
 
 /// Tuple variant serializer.
 ///
 /// Never instantiated, tuple variants are not supported.
-pub struct TupleVariantSerializer<'input, 'output, T: 'output + UrlEncodedTarget> {
+pub struct TupleVariantSerializer<'input, 'output, T: UrlEncodedTarget> {
     inner: ser::Impossible<&'output mut UrlEncodedSerializer<'input, T>, Error>,
 }
 
 /// Map serializer.
-pub struct MapSerializer<'input, 'output, Target: 'output + UrlEncodedTarget> {
+pub struct MapSerializer<'input, 'output, Target: UrlEncodedTarget> {
     urlencoder: &'output mut UrlEncodedSerializer<'input, Target>,
     key: Option<Cow<'static, str>>,
 }
 
 /// Struct serializer.
-pub struct StructSerializer<'input, 'output, Target: 'output + UrlEncodedTarget> {
+pub struct StructSerializer<'input, 'output, Target: UrlEncodedTarget> {
     urlencoder: &'output mut UrlEncodedSerializer<'input, Target>,
 }
 
 /// Struct variant serializer.
 ///
 /// Never instantiated, struct variants are not supported.
-pub struct StructVariantSerializer<'input, 'output, T: 'output + UrlEncodedTarget> {
+pub struct StructVariantSerializer<'input, 'output, T: UrlEncodedTarget> {
     inner: ser::Impossible<&'output mut UrlEncodedSerializer<'input, T>, Error>,
 }
 
