@@ -5,6 +5,7 @@ use form_urlencoded::Parse as UrlEncodedParse;
 use serde::de::value::MapDeserializer;
 use serde::de::Error as de_Error;
 use serde::de::{self, IntoDeserializer};
+use serde::forward_to_deserialize_any;
 use std::borrow::Cow;
 use std::io::Read;
 
