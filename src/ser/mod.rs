@@ -49,9 +49,7 @@ pub struct Serializer<'input, 'output, Target: UrlEncodedTarget> {
 impl<'input, 'output, Target: 'output + UrlEncodedTarget> Serializer<'input, 'output, Target> {
     /// Returns a new `Serializer`.
     pub fn new(urlencoder: &'output mut UrlEncodedSerializer<'input, Target>) -> Self {
-        Serializer {
-            urlencoder: urlencoder,
-        }
+        Serializer { urlencoder }
     }
 }
 
@@ -478,7 +476,7 @@ where
         value: &T,
     ) -> Result<(), Error> {
         {
-            let key = self.key.as_ref().ok_or_else(|| Error::no_key())?;
+            let key = self.key.as_ref().ok_or_else(Error::no_key)?;
             let value_sink = value::ValueSink::new(self.urlencoder, &key);
             value.serialize(part::PartSerializer::new(value_sink))?;
         }
