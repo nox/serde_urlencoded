@@ -21,7 +21,7 @@ test = false
 form_urlencoded = "1"
 itoa = "0.4"
 ryu = "1"
-serde = "1"
+serde = "1.0.69"
 
 [dev-dependencies]
 serde_derive = "1"
