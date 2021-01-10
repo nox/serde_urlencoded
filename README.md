@@ -24,7 +24,7 @@ serde_urlencoded = "0.7"
 The documentation is available on [docs.rs].
 
 [crates.io]: https://crates.io/crates/serde_urlencoded
-[docs.rs]: https://docs.rs/serde_urlencoded/0.7.0/serde_urlencoded/
+[docs.rs]: https://docs.rs/serde_urlencoded/0.7.1/serde_urlencoded/
 
 ## Getting help
 
