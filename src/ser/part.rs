@@ -1,5 +1,5 @@
 use crate::ser::Error;
-use serde::ser;
+use serde::ser::{self, SerializeSeq};
 use std::str;
 
 pub struct PartSerializer<S> {
@@ -14,6 +14,7 @@ impl<S: Sink> PartSerializer<S> {
 
 pub trait Sink: Sized {
     type Ok;
+    type SerSeq: SerializeSeq<Ok=Self::Ok, Error=Error>;
 
     fn serialize_static_str(
         self,
@@ -23,6 +24,7 @@ pub trait Sink: Sized {
     fn serialize_str(self, value: &str) -> Result<Self::Ok, Error>;
     fn serialize_string(self, value: String) -> Result<Self::Ok, Error>;
     fn serialize_none(self) -> Result<Self::Ok, Error>;
+    fn serialize_seq(self) -> Result<Self::SerSeq, Error>;
 
     fn serialize_some<T: ?Sized + ser::Serialize>(
         self,
@@ -35,7 +37,7 @@ pub trait Sink: Sized {
 impl<S: Sink> ser::Serializer for PartSerializer<S> {
     type Ok = S::Ok;
     type Error = Error;
-    type SerializeSeq = ser::Impossible<S::Ok, Error>;
+    type SerializeSeq = S::SerSeq;
     type SerializeTuple = ser::Impossible<S::Ok, Error>;
     type SerializeTupleStruct = ser::Impossible<S::Ok, Error>;
     type SerializeTupleVariant = ser::Impossible<S::Ok, Error>;
@@ -153,7 +155,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         self,
         _len: Option<usize>,
     ) -> Result<Self::SerializeSeq, Error> {
-        Err(self.sink.unsupported())
+        self.sink.serialize_seq()
     }
 
     fn serialize_tuple(

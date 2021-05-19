@@ -1,6 +1,6 @@
 use crate::ser::part::Sink;
 use crate::ser::Error;
-use serde::Serialize;
+use serde::{Serialize, ser::Impossible};
 use std::borrow::Cow;
 use std::ops::Deref;
 
@@ -47,6 +47,7 @@ where
     End: for<'key> FnOnce(Key<'key>) -> Result<Ok, Error>,
 {
     type Ok = Ok;
+    type SerSeq = Impossible<Self::Ok, Error>;
 
     fn serialize_static_str(self, value: &'static str) -> Result<Ok, Error> {
         (self.end)(Key::Static(value))
@@ -73,5 +74,9 @@ where
 
     fn unsupported(self) -> Error {
         Error::Custom("unsupported key".into())
+    }
+
+    fn serialize_seq(self) -> Result<Self::SerSeq, Error> {
+        Err(Error::Custom("Cannot serialize a key as a sequence".into()))
     }
 }

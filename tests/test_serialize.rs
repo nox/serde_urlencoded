@@ -84,3 +84,19 @@ fn serialize_unit_struct() {
 fn serialize_unit_type() {
     assert_eq!(serde_urlencoded::to_string(()), Ok("".to_owned()));
 }
+
+#[derive(Serialize)]
+struct Repeated {
+    values: Vec<String>
+}
+
+#[test]
+fn serialize_repeated() {
+    let repeated = Repeated {
+        values: vec!["test1".to_owned(), "test2".to_owned()]
+    };
+    assert_eq!(
+        serde_urlencoded::to_string(repeated),
+        Ok("values=test1&values=test2".to_owned())
+    )
+}

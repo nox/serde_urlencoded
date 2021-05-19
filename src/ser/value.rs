@@ -2,7 +2,7 @@ use crate::ser::part::{PartSerializer, Sink};
 use crate::ser::Error;
 use form_urlencoded::Serializer as UrlEncodedSerializer;
 use form_urlencoded::Target as UrlEncodedTarget;
-use serde::ser::Serialize;
+use serde::ser::{Serialize, SerializeSeq};
 use std::str;
 
 pub struct ValueSink<'input, 'key, 'target, Target>
@@ -25,12 +25,38 @@ where
     }
 }
 
+pub struct ValueSinkSeqSerializer<'input, 'key, 'target, Target>
+where
+    Target: UrlEncodedTarget,
+{
+    sink: ValueSink<'input, 'key, 'target, Target>
+}
+
+impl <'input, 'key, 'target, Target> SerializeSeq
+for ValueSinkSeqSerializer<'input, 'key, 'target, Target> 
+where Target: UrlEncodedTarget {
+    type Ok = ();
+    type Error = Error;
+
+    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    where
+        T: Serialize {
+        value.serialize(PartSerializer::new(ValueSink::new(self.sink.urlencoder, self.sink.key)))?;
+        Ok(())
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        Ok(())
+    }
+}
+
 impl<'input, 'key, 'target, Target> Sink
     for ValueSink<'input, 'key, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
     type Ok = ();
+    type SerSeq = ValueSinkSeqSerializer<'input, 'key, 'target, Target>;
 
     fn serialize_str(self, value: &str) -> Result<(), Error> {
         self.urlencoder.append_pair(self.key, value);
@@ -58,5 +84,9 @@ where
 
     fn unsupported(self) -> Error {
         Error::Custom("unsupported value".into())
+    }
+
+    fn serialize_seq(self) -> Result<Self::SerSeq, Error> {
+        Ok(ValueSinkSeqSerializer{sink: self})
     }
 }
