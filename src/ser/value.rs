@@ -29,19 +29,28 @@ pub struct ValueSinkSeqSerializer<'input, 'key, 'target, Target>
 where
     Target: UrlEncodedTarget,
 {
-    sink: ValueSink<'input, 'key, 'target, Target>
+    sink: ValueSink<'input, 'key, 'target, Target>,
 }
 
-impl <'input, 'key, 'target, Target> SerializeSeq
-for ValueSinkSeqSerializer<'input, 'key, 'target, Target> 
-where Target: UrlEncodedTarget {
+impl<'input, 'key, 'target, Target> SerializeSeq
+    for ValueSinkSeqSerializer<'input, 'key, 'target, Target>
+where
+    Target: UrlEncodedTarget,
+{
     type Ok = ();
     type Error = Error;
 
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    fn serialize_element<T: ?Sized>(
+        &mut self,
+        value: &T,
+    ) -> Result<(), Self::Error>
     where
-        T: Serialize {
-        value.serialize(PartSerializer::new(ValueSink::new(self.sink.urlencoder, self.sink.key)))?;
+        T: Serialize,
+    {
+        value.serialize(PartSerializer::new(ValueSink::new(
+            self.sink.urlencoder,
+            self.sink.key,
+        )))?;
         Ok(())
     }
 
@@ -87,6 +96,6 @@ where
     }
 
     fn serialize_seq(self) -> Result<Self::SerSeq, Error> {
-        Ok(ValueSinkSeqSerializer{sink: self})
+        Ok(ValueSinkSeqSerializer { sink: self })
     }
 }

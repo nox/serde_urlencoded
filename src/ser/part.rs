@@ -14,7 +14,7 @@ impl<S: Sink> PartSerializer<S> {
 
 pub trait Sink: Sized {
     type Ok;
-    type SerSeq: SerializeSeq<Ok=Self::Ok, Error=Error>;
+    type SerSeq: SerializeSeq<Ok = Self::Ok, Error = Error>;
 
     fn serialize_static_str(
         self,

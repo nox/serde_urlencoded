@@ -1,6 +1,6 @@
 use crate::ser::part::Sink;
 use crate::ser::Error;
-use serde::{Serialize, ser::Impossible};
+use serde::{ser::Impossible, Serialize};
 use std::borrow::Cow;
 use std::ops::Deref;
 
