@@ -80,6 +80,14 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         self.serialize_integer(v)
     }
 
+    fn serialize_u128(self, v: u128) -> Result<S::Ok, Error> {
+        self.serialize_integer(v)
+    }
+
+    fn serialize_i128(self, v: i128) -> Result<S::Ok, Error> {
+        self.serialize_integer(v)
+    }
+
     fn serialize_f32(self, v: f32) -> Result<S::Ok, Error> {
         self.serialize_floating(v)
     }
