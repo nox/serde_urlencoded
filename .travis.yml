@@ -13,5 +13,5 @@ script:
        rustup component add rustfmt
        cargo fmt --all -- --check
      fi
-  - cargo build -v
-  - cargo test -v
+  - cargo build --features=i128 -v
+  - cargo test --features=i128 -v
