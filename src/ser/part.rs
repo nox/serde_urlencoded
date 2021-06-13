@@ -80,6 +80,16 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         self.serialize_integer(v)
     }
 
+    #[cfg(feature = "i128")]
+    fn serialize_u128(self, v: u128) -> Result<S::Ok, Error> {
+        self.serialize_integer(v)
+    }
+
+    #[cfg(feature = "i128")]
+    fn serialize_i128(self, v: i128) -> Result<S::Ok, Error> {
+        self.serialize_integer(v)
+    }
+
     fn serialize_f32(self, v: f32) -> Result<S::Ok, Error> {
         self.serialize_floating(v)
     }
@@ -212,7 +222,7 @@ impl<S: Sink> PartSerializer<S> {
     where
         I: itoa::Integer,
     {
-        let mut buf = [b'\0'; 20];
+        let mut buf = [b'\0'; 40];
         let len = itoa::write(&mut buf[..], value).unwrap();
         let part = unsafe { str::from_utf8_unchecked(&buf[0..len]) };
         ser::Serializer::serialize_str(self, part)
