@@ -1,6 +1,7 @@
 //! `x-www-form-urlencoded` meets Serde
 
 #![warn(unused_extern_crates)]
+#![forbid(unsafe_code)]
 
 pub mod de;
 pub mod ser;
