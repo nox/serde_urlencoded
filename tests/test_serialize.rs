@@ -13,6 +13,24 @@ fn serialize_newtype_i32() {
 }
 
 #[test]
+fn serialize_newtype_u128() {
+    let params = &[("field", Some(NewType(u128::MAX)))];
+    assert_eq!(
+        serde_urlencoded::to_string(params),
+        Ok(format!("field={}", u128::MAX))
+    );
+}
+
+#[test]
+fn serialize_newtype_i128() {
+    let params = &[("field", Some(NewType(i128::MIN)))];
+    assert_eq!(
+        serde_urlencoded::to_string(params),
+        Ok(format!("field={}", i128::MIN))
+    );
+}
+
+#[test]
 fn serialize_option_map_int() {
     let params = &[("first", Some(23)), ("middle", None), ("last", Some(42))];
 
