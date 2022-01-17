@@ -19,7 +19,7 @@ test = false
 
 [dependencies]
 form_urlencoded = "1"
-itoa = "0.4"
+itoa = "1"
 ryu = "1"
 serde = "1.0.69"
 
