@@ -130,10 +130,12 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
         u16
         u32
         u64
+        u128
         i8
         i16
         i32
         i64
+        i128
         f32
         f64
         char
@@ -254,10 +256,12 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
         u16 => deserialize_u16,
         u32 => deserialize_u32,
         u64 => deserialize_u64,
+        u128 => deserialize_u128,
         i8 => deserialize_i8,
         i16 => deserialize_i16,
         i32 => deserialize_i32,
         i64 => deserialize_i64,
+        i128 => deserialize_i128,
         f32 => deserialize_f32,
         f64 => deserialize_f64,
     }

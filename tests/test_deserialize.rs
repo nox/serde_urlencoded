@@ -86,3 +86,14 @@ fn deserialize_unit_enum() {
 fn deserialize_unit_type() {
     assert_eq!(serde_urlencoded::from_str(""), Ok(()));
 }
+
+#[test]
+fn deserialize_128bit() {
+    let result = vec![("max", u128::MAX)];
+    let q = format!("max={}", u128::MAX);
+    assert_eq!(serde_urlencoded::from_str(&q), Ok(result));
+
+    let result = vec![("min", i128::MIN)];
+    let q = format!("min={}", i128::MIN);
+    assert_eq!(serde_urlencoded::from_str(&q), Ok(result));
+}
