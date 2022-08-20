@@ -58,7 +58,12 @@ fn deserialize_unit() {
     assert_eq!(serde_urlencoded::from_str(""), Ok(()));
     assert_eq!(serde_urlencoded::from_str("&"), Ok(()));
     assert_eq!(serde_urlencoded::from_str("&&"), Ok(()));
-    assert!(serde_urlencoded::from_str::<()>("first=23").is_err());
+
+    let err = serde_urlencoded::from_str::<()>("first=23").unwrap_err();
+    assert_eq!(
+        format!("{err}"),
+        "invalid length 1, expected 0 elements in sequence"
+    );
 }
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
@@ -85,4 +90,40 @@ fn deserialize_unit_enum() {
 #[test]
 fn deserialize_unit_type() {
     assert_eq!(serde_urlencoded::from_str(""), Ok(()));
+}
+
+#[test]
+fn deserialize_error_no_value() {
+    let err = serde_urlencoded::from_str::<Vec<(&str, usize)>>("first&second")
+        .unwrap_err();
+    assert_eq!(format!("{err}"), "failed to parse value for key 'first': cannot parse integer from empty string");
+}
+
+#[test]
+fn deserialize_error_vec() {
+    let err = serde_urlencoded::from_str::<Vec<(&str, usize)>>(
+        "first=23&second=FORTY-TWO",
+    )
+    .unwrap_err();
+    assert_eq!(
+        format!("{err}"),
+        "failed to parse value for key 'second': invalid digit found in string"
+    );
+}
+
+#[test]
+fn deserialize_error_struct() {
+    #[derive(Debug, Deserialize)]
+    #[allow(unused)]
+    struct Query {
+        first: usize,
+        second: usize,
+    }
+
+    let err = serde_urlencoded::from_str::<Query>("first=23&second=FORTY-TWO")
+        .unwrap_err();
+    assert_eq!(
+        format!("{err}"),
+        "failed to parse value for key 'second': invalid digit found in string"
+    );
 }

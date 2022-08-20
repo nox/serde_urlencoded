@@ -2,9 +2,10 @@
 
 use form_urlencoded::parse;
 use form_urlencoded::Parse as UrlEncodedParse;
-use serde::de::value::MapDeserializer;
 use serde::de::Error as de_Error;
-use serde::de::{self, IntoDeserializer};
+use serde::de::{
+    self, DeserializeSeed, IntoDeserializer, MapAccess, SeqAccess,
+};
 use serde::forward_to_deserialize_any;
 use std::borrow::Cow;
 use std::io::Read;
@@ -80,14 +81,14 @@ where
 /// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size`
 ///   defers to `deserialize`.
 pub struct Deserializer<'de> {
-    inner: MapDeserializer<'de, PartIterator<'de>, Error>,
+    inner: PartIterator<'de>,
 }
 
 impl<'de> Deserializer<'de> {
     /// Returns a new `Deserializer`.
     pub fn new(parser: UrlEncodedParse<'de>) -> Self {
         Deserializer {
-            inner: MapDeserializer::new(PartIterator(parser)),
+            inner: PartIterator::new(parser),
         }
     }
 }
@@ -153,16 +154,179 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
     }
 }
 
-struct PartIterator<'de>(UrlEncodedParse<'de>);
+struct PartIterator<'de> {
+    iter: UrlEncodedParse<'de>,
+    pair: Option<(Part<'de>, Part<'de>)>,
+    count: usize,
+}
+
+impl<'de> PartIterator<'de> {
+    fn new(iter: UrlEncodedParse<'de>) -> Self {
+        PartIterator {
+            iter,
+            pair: None,
+            count: 0,
+        }
+    }
+
+    fn end(self) -> Result<(), Error> {
+        let remaining = self.iter.count();
+        if remaining == 0 {
+            Ok(())
+        } else {
+            Err(Error::invalid_length(
+                self.count + remaining,
+                &"0 elements in sequence",
+            ))
+        }
+    }
+}
 
 impl<'de> Iterator for PartIterator<'de> {
     type Item = (Part<'de>, Part<'de>);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|(k, v)| (Part(k), Part(v)))
+        match self.iter.next().map(|(k, v)| (Part(k), Part(v))) {
+            Some(pair) => {
+                self.count += 1;
+                Some(pair)
+            }
+            None => None,
+        }
     }
 }
 
+impl<'de> MapAccess<'de> for PartIterator<'de> {
+    type Error = Error;
+
+    fn next_key_seed<K>(
+        &mut self,
+        seed: K,
+    ) -> Result<Option<K::Value>, Self::Error>
+    where
+        K: DeserializeSeed<'de>,
+    {
+        match self.next() {
+            Some((key, value)) => {
+                self.pair = Some((key.clone(), value));
+                seed.deserialize(key.into_deserializer()).map(Some)
+            }
+            None => Ok(None),
+        }
+    }
+
+    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
+    where
+        V: DeserializeSeed<'de>,
+    {
+        let (key, value) = self
+            .pair
+            .take()
+            .expect("MapAccess::next_value called before next_key");
+
+        seed.deserialize(value.into_deserializer()).map_err(|err| {
+            Error::custom(format_args!(
+                "failed to parse value for key '{}': {err}",
+                key.0,
+            ))
+        })
+    }
+}
+
+impl<'de> SeqAccess<'de> for PartIterator<'de> {
+    type Error = Error;
+
+    fn next_element_seed<T>(
+        &mut self,
+        seed: T,
+    ) -> Result<Option<T::Value>, Self::Error>
+    where
+        T: DeserializeSeed<'de>,
+    {
+        match self.next() {
+            Some((key, value)) => {
+                let de = PairDeserializer(key, value);
+                seed.deserialize(de).map(Some)
+            }
+            None => Ok(None),
+        }
+    }
+}
+
+struct PairDeserializer<'de>(Part<'de>, Part<'de>);
+
+impl<'de> de::Deserializer<'de> for PairDeserializer<'de> {
+    type Error = Error;
+
+    forward_to_deserialize_any! {
+        bool i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 f32 f64 char str string
+        bytes byte_buf option unit unit_struct newtype_struct tuple_struct map
+        struct enum identifier ignored_any
+    }
+
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: de::Visitor<'de>,
+    {
+        self.deserialize_seq(visitor)
+    }
+
+    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: de::Visitor<'de>,
+    {
+        let PairDeserializer(key, value) = self;
+
+        let mut pair_visitor = PairVisitor(Some(key.clone()), Some(value));
+        match visitor.visit_seq(&mut pair_visitor) {
+            Ok(pair) if pair_visitor.1.is_none() => Ok(pair),
+            Ok(_pair) => Err(de::Error::invalid_length(1, &"2")),
+            Err(err) => Err(Error::custom(format_args!(
+                "failed to parse value for key '{}': {err}",
+                key.0
+            ))),
+        }
+    }
+
+    fn deserialize_tuple<V>(
+        self,
+        len: usize,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+    where
+        V: de::Visitor<'de>,
+    {
+        if len == 2 {
+            self.deserialize_seq(visitor)
+        } else {
+            Err(de::Error::invalid_length(len, &"a pair of values"))
+        }
+    }
+}
+
+struct PairVisitor<'de>(Option<Part<'de>>, Option<Part<'de>>);
+
+impl<'de> SeqAccess<'de> for PairVisitor<'de> {
+    type Error = Error;
+
+    fn next_element_seed<T>(
+        &mut self,
+        seed: T,
+    ) -> Result<Option<T::Value>, Self::Error>
+    where
+        T: DeserializeSeed<'de>,
+    {
+        if let Some(key) = self.0.take() {
+            seed.deserialize(key.into_deserializer()).map(Some)
+        } else if let Some(value) = self.1.take() {
+            seed.deserialize(value.into_deserializer()).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+#[derive(Clone)]
 struct Part<'de>(Cow<'de, str>);
 
 impl<'de> IntoDeserializer<'de> for Part<'de> {
