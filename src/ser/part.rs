@@ -175,7 +175,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         self,
         _name: &'static str,
         _len: usize,
-    ) -> Result<Self::SerializeTuple, Error> {
+    ) -> Result<Self::SerializeTupleStruct, Error> {
         Err(self.sink.unsupported())
     }
 
