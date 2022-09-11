@@ -104,7 +104,7 @@ fn serialize_unit_type() {
 }
 
 #[test]
-fn serialize_tuple() {
+fn serialize_value_tuple() {
     assert_eq!(
         serde_urlencoded::to_string((
             ("key", ["foo", "baz", "bar"]),
