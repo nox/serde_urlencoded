@@ -1,5 +1,5 @@
 use crate::ser::Error;
-use serde::ser;
+use serde::ser::{self, Error as SerError};
 use std::str;
 
 pub struct PartSerializer<S> {
@@ -35,8 +35,9 @@ pub trait Sink: Sized {
 impl<S: Sink> ser::Serializer for PartSerializer<S> {
     type Ok = S::Ok;
     type Error = Error;
+
     type SerializeSeq = ser::Impossible<S::Ok, Error>;
-    type SerializeTuple = ser::Impossible<S::Ok, Error>;
+    type SerializeTuple = TupleSerializer<S>;
     type SerializeTupleStruct = ser::Impossible<S::Ok, Error>;
     type SerializeTupleVariant = ser::Impossible<S::Ok, Error>;
     type SerializeMap = ser::Impossible<S::Ok, Error>;
@@ -168,14 +169,15 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         self,
         _len: usize,
     ) -> Result<Self::SerializeTuple, Error> {
-        Err(self.sink.unsupported())
+        Ok(TupleSerializer::new(self.sink))
+        //Err(self.sink.unsupported())
     }
 
     fn serialize_tuple_struct(
         self,
         _name: &'static str,
         _len: usize,
-    ) -> Result<Self::SerializeTuple, Error> {
+    ) -> Result<Self::SerializeTupleStruct, Error> {
         Err(self.sink.unsupported())
     }
 
@@ -212,6 +214,76 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         _len: usize,
     ) -> Result<Self::SerializeStructVariant, Error> {
         Err(self.sink.unsupported())
+    }
+}
+
+pub struct TupleSerializer<S: Sink> {
+    buffer: Vec<Box<str>>,
+    sink: S,
+}
+
+impl<S: Sink> TupleSerializer<S> {
+    pub fn new(sink: S) -> TupleSerializer<S> {
+        TupleSerializer { buffer: Vec::new(), sink }
+    }
+}
+
+struct BufferSink;
+
+impl Sink for BufferSink {
+    type Ok = Box<str>;
+
+    fn serialize_str(self, value: &str) -> Result<Self::Ok, Error> {
+        Ok(Box::from(value))
+    }
+
+    fn serialize_none(self) -> Result<Self::Ok, Error> {
+        Ok(Box::from(""))
+    }
+
+    fn serialize_some<T: ?Sized + ser::Serialize>(
+            self,
+            value: &T,
+        ) -> Result<Self::Ok, Error> {
+        value.serialize(PartSerializer::new(self))
+    }
+
+    fn serialize_static_str(
+            self,
+            value: &'static str,
+        ) -> Result<Self::Ok, Error> {
+        Ok(Box::from(value))
+    }
+
+    fn serialize_string(self, value: String) -> Result<Self::Ok, Error> {
+        Ok(Box::from(value))
+    }
+
+    fn unsupported(self) -> Error {
+        Error::custom("uns")
+    }
+}
+
+impl<S: Sink> ser::SerializeTuple for TupleSerializer<S> {
+    type Ok = <S as Sink>::Ok;
+    type Error = Error;
+
+    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    where
+        T: serde::Serialize
+    {
+        let sink = BufferSink;
+
+        let item = value.serialize(PartSerializer::new(sink)).unwrap();
+        self.buffer.push(item);
+
+        Ok(())
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        let result = self.buffer.join(",");
+
+        self.sink.serialize_string(result)
     }
 }
 

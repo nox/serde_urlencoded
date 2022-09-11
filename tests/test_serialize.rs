@@ -102,3 +102,14 @@ fn serialize_unit_struct() {
 fn serialize_unit_type() {
     assert_eq!(serde_urlencoded::to_string(()), Ok("".to_owned()));
 }
+
+#[test]
+fn serialize_tuple() {
+    assert_eq!(
+        serde_urlencoded::to_string((
+            ("key", ["foo", "baz", "bar"]),
+            ("key2", [1,2,3,4,5,6])
+        )),
+        Ok("key=foo%2Cbaz%2Cbar&key2=1%2C2%2C3%2C4%2C5%2C6".to_owned())
+    );
+}
