@@ -113,3 +113,14 @@ fn serialize_value_tuple() {
         Ok("key=foo%2Cbaz%2Cbar&key2=1%2C2%2C3%2C4%2C5%2C6".to_owned())
     );
 }
+
+#[test]
+fn serialize_value_seq() {
+    assert_eq!(
+        serde_urlencoded::to_string((
+            ("key", vec!["foo", "baz", "bar"]),
+            ("key2", vec![1,2,3,4,5,6])
+        )),
+        Ok("key=foo%2Cbaz%2Cbar&key2=1%2C2%2C3%2C4%2C5%2C6".to_owned())
+    );
+}
