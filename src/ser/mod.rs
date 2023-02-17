@@ -25,10 +25,35 @@ use std::str;
 ///
 /// assert_eq!(
 ///     serde_urlencoded::to_string(meal),
-///     Ok("bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter".to_owned()));
+///     Ok("bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter".to_owned())
+/// );
 /// ```
 pub fn to_string<T: ser::Serialize>(input: T) -> Result<String, Error> {
-    let mut urlencoder = UrlEncodedSerializer::new("".to_owned());
+    into_target(String::new(), input)
+}
+
+/// Serializes a value into the provided `application/x-www-form-urlencoded` buffer.
+///
+/// ```
+/// let meal = &[
+///     ("bread", "baguette"),
+///     ("cheese", "comté"),
+///     ("meat", "ham"),
+///     ("fat", "butter"),
+/// ];
+///
+/// assert_eq!(
+///     serde_urlencoded::into_target("/cook?".to_owned(), meal),
+///     Ok("/cook?bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter".to_owned())
+/// );
+/// ```
+pub fn into_target<S: UrlEncodedTarget, T: ser::Serialize>(
+    mut target: S,
+    input: T,
+) -> Result<S::Finished, Error> {
+    let start_position = target.as_mut_string().len();
+    let mut urlencoder =
+        UrlEncodedSerializer::for_suffix(target, start_position);
     input.serialize(Serializer::new(&mut urlencoder))?;
     Ok(urlencoder.finish())
 }
@@ -487,7 +512,7 @@ where
     ) -> Result<(), Error> {
         {
             let key = self.key.as_ref().ok_or_else(Error::no_key)?;
-            let value_sink = value::ValueSink::new(self.urlencoder, &key);
+            let value_sink = value::ValueSink::new(self.urlencoder, key);
             value.serialize(part::PartSerializer::new(value_sink))?;
         }
         self.key = None;
