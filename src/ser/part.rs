@@ -112,7 +112,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
     }
 
     fn serialize_unit(self) -> Result<S::Ok, Error> {
-        Err(self.sink.unsupported())
+        self.sink.serialize_none()
     }
 
     fn serialize_unit_struct(self, name: &'static str) -> Result<S::Ok, Error> {
