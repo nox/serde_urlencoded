@@ -61,17 +61,17 @@ where
     }
 
     fn serialize_none(self) -> Result<Ok, Error> {
-        Err(self.unsupported())
+        Err(self.unsupported("none"))
     }
 
     fn serialize_some<T: ?Sized + Serialize>(
         self,
         _value: &T,
     ) -> Result<Ok, Error> {
-        Err(self.unsupported())
+        Err(self.unsupported("some"))
     }
 
-    fn unsupported(self) -> Error {
-        Error::Custom("unsupported key".into())
+    fn unsupported(self, type_str: &'static str) -> Error {
+        Error::Custom(format!("unsupported key type: {type_str}").into())
     }
 }

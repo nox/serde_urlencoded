@@ -102,3 +102,32 @@ fn serialize_unit_struct() {
 fn serialize_unit_type() {
     assert_eq!(serde_urlencoded::to_string(()), Ok("".to_owned()));
 }
+
+#[derive(Serialize)]
+struct ListStruct<T> {
+    x: Vec<T>,
+    y: Vec<T>,
+}
+
+#[test]
+#[should_panic(
+    expected = r#"called `Result::unwrap()` on an `Err` value: Custom("unsupported value type: sequence")"#
+)]
+fn value_type_error_msg() {
+    let list_struct = ListStruct {
+        x: vec![1, 2, 3],
+        y: vec![4, 5, 6],
+    };
+    let _ = serde_urlencoded::to_string(list_struct).unwrap();
+}
+
+#[test]
+#[should_panic(
+    expected = r#"called `Result::unwrap()` on an `Err` value: Custom("unsupported key type: sequence")"#
+)]
+fn key_type_error_msg() {
+    use std::collections::HashMap;
+
+    let mut map = HashMap::from([(vec![1, 2, 3], "value")]);
+    let _ = serde_urlencoded::to_string(map).unwrap();
+}

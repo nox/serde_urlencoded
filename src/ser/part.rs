@@ -29,7 +29,7 @@ pub trait Sink: Sized {
         value: &T,
     ) -> Result<Self::Ok, Error>;
 
-    fn unsupported(self) -> Error;
+    fn unsupported(self, type_str: &'static str) -> Error;
 }
 
 impl<S: Sink> ser::Serializer for PartSerializer<S> {
@@ -112,7 +112,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
     }
 
     fn serialize_unit(self) -> Result<S::Ok, Error> {
-        Err(self.sink.unsupported())
+        Err(self.sink.unsupported("unit"))
     }
 
     fn serialize_unit_struct(self, name: &'static str) -> Result<S::Ok, Error> {
@@ -143,7 +143,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         _variant: &'static str,
         _value: &T,
     ) -> Result<S::Ok, Error> {
-        Err(self.sink.unsupported())
+        Err(self.sink.unsupported("newtype variant"))
     }
 
     fn serialize_none(self) -> Result<S::Ok, Error> {
@@ -161,14 +161,14 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         self,
         _len: Option<usize>,
     ) -> Result<Self::SerializeSeq, Error> {
-        Err(self.sink.unsupported())
+        Err(self.sink.unsupported("sequence"))
     }
 
     fn serialize_tuple(
         self,
         _len: usize,
     ) -> Result<Self::SerializeTuple, Error> {
-        Err(self.sink.unsupported())
+        Err(self.sink.unsupported("tuple"))
     }
 
     fn serialize_tuple_struct(
@@ -176,7 +176,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTuple, Error> {
-        Err(self.sink.unsupported())
+        Err(self.sink.unsupported("tuple struct"))
     }
 
     fn serialize_tuple_variant(
@@ -186,14 +186,14 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         _variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTupleVariant, Error> {
-        Err(self.sink.unsupported())
+        Err(self.sink.unsupported("tuple variant"))
     }
 
     fn serialize_map(
         self,
         _len: Option<usize>,
     ) -> Result<Self::SerializeMap, Error> {
-        Err(self.sink.unsupported())
+        Err(self.sink.unsupported("map"))
     }
 
     fn serialize_struct(
@@ -201,7 +201,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStruct, Error> {
-        Err(self.sink.unsupported())
+        Err(self.sink.unsupported("struct"))
     }
 
     fn serialize_struct_variant(
@@ -211,7 +211,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         _variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStructVariant, Error> {
-        Err(self.sink.unsupported())
+        Err(self.sink.unsupported("struct variant"))
     }
 }
 
