@@ -56,7 +56,7 @@ where
         value.serialize(PartSerializer::new(self))
     }
 
-    fn unsupported(self) -> Error {
-        Error::Custom("unsupported value".into())
+    fn unsupported(self, type_str: &'static str) -> Error {
+        Error::Custom(format!("unsupported value type: {type_str}").into())
     }
 }
