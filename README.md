@@ -24,7 +24,37 @@ serde_urlencoded = "0.7"
 The documentation is available on [docs.rs].
 
 [crates.io]: https://crates.io/crates/serde_urlencoded
-[docs.rs]: https://docs.rs/serde_urlencoded/0.7.1/serde_urlencoded/
+[docs.rs]: https://docs.rs/serde_urlencoded
+
+## Example
+
+This example assumes you also have `serde = { version = "1", features = ["derive"] }` in your `Cargo.toml`:
+
+```rust
+use serde_urlencoded::{from_str, to_string};
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+struct QueryParameters {
+    page: u32,
+    name: String,
+}
+
+fn main() {
+    let params = QueryParameters {
+        page: 42,
+        name: "The name of the album".into(),
+    };
+
+    let actual_encoded = to_string(params.clone()).expect("Should serialize");
+    let expected_encoded = "page=42&name=The+name+of+the+album";
+
+    assert_eq!(expected_encoded, actual_encoded);
+    
+    let expected = from_str::<QueryParameters>(expected_encoded).expect("Should deserialize");
+    assert_eq!(expected, params);
+}
+```
 
 ## Getting help
 
