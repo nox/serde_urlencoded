@@ -2,11 +2,11 @@ use crate::ser::key::KeySink;
 use crate::ser::part::PartSerializer;
 use crate::ser::value::ValueSink;
 use crate::ser::Error;
+use alloc::borrow::Cow;
+use core::mem;
 use form_urlencoded::Serializer as UrlEncodedSerializer;
 use form_urlencoded::Target as UrlEncodedTarget;
 use serde::ser;
-use std::borrow::Cow;
-use std::mem;
 
 pub struct PairSerializer<'input, 'target, Target: UrlEncodedTarget> {
     urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,

@@ -1,13 +1,12 @@
 //! Deserialization support for the `application/x-www-form-urlencoded` format.
 
+use alloc::borrow::Cow;
 use form_urlencoded::parse;
 use form_urlencoded::Parse as UrlEncodedParse;
 use serde::de::value::MapDeserializer;
 use serde::de::Error as de_Error;
 use serde::de::{self, IntoDeserializer};
 use serde::forward_to_deserialize_any;
-use std::borrow::Cow;
-use std::io::Read;
 
 #[doc(inline)]
 pub use serde::de::value::Error;
@@ -58,12 +57,15 @@ where
 
 /// Convenience function that reads all bytes from `reader` and deserializes
 /// them with `from_bytes`.
+#[cfg(feature = "std")]
 pub fn from_reader<T, R>(mut reader: R) -> Result<T, Error>
 where
     T: de::DeserializeOwned,
-    R: Read,
+    R: std::io::Read,
 {
-    let mut buf = vec![];
+    use alloc::vec::Vec;
+
+    let mut buf = Vec::new();
     reader.read_to_end(&mut buf).map_err(|e| {
         de::Error::custom(format_args!("could not read input: {}", e))
     })?;

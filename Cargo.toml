@@ -17,11 +17,17 @@ travis-ci = {repository = "nox/serde_urlencoded"}
 [lib]
 test = false
 
+[features]
+default = ["std"]
+std = []
+
 [dependencies]
-form_urlencoded = "1"
+form_urlencoded = { version = "1", default_features = false, features = [
+	"alloc",
+] }
 itoa = "1"
 ryu = "1"
-serde = "1.0.69"
+serde = { version = "1.0.69", default_features = false, features = ["alloc"] }
 
 [dev-dependencies]
 serde_derive = "1"

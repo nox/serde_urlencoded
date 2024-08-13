@@ -5,13 +5,15 @@ mod pair;
 mod part;
 mod value;
 
+use alloc::borrow::Cow;
+use alloc::borrow::ToOwned;
+use alloc::format;
+use alloc::string::String;
+use core::fmt;
+use core::str;
 use form_urlencoded::Serializer as UrlEncodedSerializer;
 use form_urlencoded::Target as UrlEncodedTarget;
 use serde::ser;
-use std::borrow::Cow;
-use std::error;
-use std::fmt;
-use std::str;
 
 /// Serializes a value into a `application/x-www-form-urlencoded` `String` buffer.
 ///
@@ -73,16 +75,17 @@ impl fmt::Display for Error {
     }
 }
 
-impl error::Error for Error {
+#[cfg(feature = "std")]
+impl std::error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::Custom(ref msg) => msg,
-            Error::Utf8(ref err) => error::Error::description(err),
+            Error::Utf8(ref err) => std::error::Error::description(err),
         }
     }
 
     /// The lower-level cause of this error, in the case of a `Utf8` error.
-    fn cause(&self) -> Option<&dyn error::Error> {
+    fn cause(&self) -> Option<&dyn std::error::Error> {
         match *self {
             Error::Custom(_) => None,
             Error::Utf8(ref err) => Some(err),
@@ -90,7 +93,7 @@ impl error::Error for Error {
     }
 
     /// The lower-level source of this error, in the case of a `Utf8` error.
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match *self {
             Error::Custom(_) => None,
             Error::Utf8(ref err) => Some(err),
